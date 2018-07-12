@@ -523,10 +523,33 @@ cdef class WeightedMedianCalculator:
 
         if self.size() != 0:
             original_median = self.get_median()
+
+        #FOR DEBUG:
+        cdef int original_k
+        cdef DOUBLE_t original_sum_w_0_k
+        cdef DOUBLE_t original_total_weight
+        original_k = self.k
+        original_sum_w_0_k = self.sum_w_0_k
+        original_total_weight = self.total_weight
+
         # samples.push (WeightedPQueue.push) uses safe_realloc, hence except -1
         return_value = self.samples.push(data, weight)
         self.update_median_parameters_post_push(data, weight,
                                                 original_median)
+        with gil:
+            print (" ")
+            print ("PUSH, data: " + str(data) 
+                + ";  orig_median: " + str(original_median) 
+                + "; new_median: " + str(self.get_median()) 
+                + ";  size: " + str(self.size())
+                + ";  weight: " + str(weight)
+                + ";  orig_total_weight: " + str(original_total_weight)
+                + ";  self.total_weight: " + str(self.total_weight)
+                + ";  orig_k: " + str(original_k)               
+                + ";  self.k: " + str(self.k)
+                + ";  orig_sum_w_0_k: " + str(original_sum_w_0_k)
+                + ";  self.sum_w_0_k: " + str(self.sum_w_0_k)
+                )                                                
         self.verify_state()
         return return_value
 
@@ -582,10 +605,34 @@ cdef class WeightedMedianCalculator:
         if self.size() != 0:
             original_median = self.get_median()
 
+        #FOR DEBUG:
+        cdef int original_k
+        cdef DOUBLE_t original_sum_w_0_k
+        cdef DOUBLE_t original_total_weight
+        original_k = self.k
+        original_sum_w_0_k = self.sum_w_0_k
+        original_total_weight = self.total_weight
+
         return_value = self.samples.remove(data, weight)
         self.update_median_parameters_post_remove(data, weight,
                                                   original_median)
-        self.verify_state()  
+
+        with gil:
+            print (" ")
+            print ("REMOVE, data: " + str(data)
+                + ";  orig_median: " + str(original_median) 
+                + "; new_median: " + str(self.get_median()) 
+                + ";  size: " + str(self.size())
+                + ";  weight: " + str(weight)
+                + ";  orig_total_weight: " + str(original_total_weight)
+                + ";  self.total_weight: " + str(self.total_weight)
+                + ";  orig_k: " + str(original_k)               
+                + ";  self.k: " + str(self.k)
+                + ";  orig_sum_w_0_k: " + str(original_sum_w_0_k)
+                + ";  self.sum_w_0_k: " + str(self.sum_w_0_k)
+                )
+
+        self.verify_state()
         return return_value
 
     cdef int pop(self, DOUBLE_t* data, DOUBLE_t* weight) nogil except -1:
@@ -598,15 +645,42 @@ cdef class WeightedMedianCalculator:
         if self.size() != 0:
             original_median = self.get_median()
 
+        #FOR DEBUG:
+        cdef int original_k
+        cdef DOUBLE_t original_sum_w_0_k
+        cdef DOUBLE_t original_total_weight
+        original_k = self.k
+        original_sum_w_0_k = self.sum_w_0_k
+        original_total_weight = self.total_weight
+
         # no elements to pop
         if self.samples.size() == 0:
+            with gil:
+                print (" ")
+                print ("POP - No samples!?")
             return -1
 
         return_value = self.samples.pop(data, weight)
         self.update_median_parameters_post_remove(data[0],
                                                   weight[0],
                                                   original_median)
-        self.verify_state()  
+
+        with gil:
+            print (" ")
+            print ("POP, data: " + str(data[0])
+                + ";  orig_median: " + str(original_median) 
+                + "; new_median: " + str(self.get_median()) 
+                + ";  size: " + str(self.size())
+                + ";  weight: " + str(weight[0])
+                + ";  orig_total_weight: " + str(original_total_weight)
+                + ";  self.total_weight: " + str(self.total_weight)
+                + ";  orig_k: " + str(original_k)               
+                + ";  self.k: " + str(self.k)
+                + ";  orig_sum_w_0_k: " + str(original_sum_w_0_k)
+                + ";  self.sum_w_0_k: " + str(self.sum_w_0_k)
+                )
+
+        self.verify_state()
         return return_value
 
     cdef int update_median_parameters_post_remove(
@@ -675,20 +749,10 @@ cdef class WeightedMedianCalculator:
         cdef DOUBLE_t raw_median
         cdef DOUBLE_t raw_sum_w_0_k
         cdef int raw_k = 0
-        #with gil:
-        #    print ("verify_state()... raw median: " + str(debug_median) + "; k based median: " + str(new_median))
 
         raw_median = self.verify_median()
         if (self.get_median() != raw_median):
-            #if debug == 1:
-            #    with gil:
-            #        print ("Medians not correct??? raw median: " + str(debug_median) + "; k based median: " + str(new_median))
             with gil:
-            #    print ("Medians not correct??? raw median: " + str(debug_median) + "; k based median: " + str(new_median))
-            
-                #self.ae = -100000
-                #self.sum_ae_0_k = -200000
-                self.k = -1000
                 raise ValueError("Medians not correct???", "raw median: " + str(raw_median), "k based median: " + str(self.get_median()))      
         
         raw_k = self.verify_k()
@@ -700,25 +764,18 @@ cdef class WeightedMedianCalculator:
         if (raw_sum_w_0_k != self.sum_w_0_k):
             with gil:
                 raise ValueError("sum_w_0_k not correct???", "raw_sum_w_0_k: " + str(raw_sum_w_0_k), "self.sum_w_0_k: " + str(self.sum_w_0_k))
-
+        
         return 0
 
     cdef DOUBLE_t verify_median(self) nogil:
         cdef int i = self.samples.size()
         cdef DOUBLE_t sum_w_0_k = self.total_weight
 
-        #with gil:
-        #    print ("get_median_raw.... self.samples.size(): " + str(i) + " ; self.total_weight: " + str(self.total_weight) + " ; "
-        #        + "self.samples.get_weight_from_index(i-1): " + str(self.samples.get_weight_from_index(i-1)))
-
         while(i > 1 and ((sum_w_0_k -
                                 self.samples.get_weight_from_index(i-1))
                                 >= self.total_weight / 2.0)):
             i -= 1
             sum_w_0_k -= self.samples.get_weight_from_index(i)
-
-        #with gil:
-        #    print ("get_median_raw.... i: " + str(i) + " ; sum_w_0_k: " + str(sum_w_0_k))
 
         if sum_w_0_k == (self.total_weight / 2.0):
             # split median
@@ -732,18 +789,12 @@ cdef class WeightedMedianCalculator:
         cdef int i = self.samples.size()
         cdef DOUBLE_t sum_w_0_k = self.total_weight
 
-        #with gil:
-        #    print ("get_median_raw.... self.samples.size(): " + str(i) + " ; self.total_weight: " + str(self.total_weight) + " ; "
-        #        + "self.samples.get_weight_from_index(i-1): " + str(self.samples.get_weight_from_index(i-1)))
-
         while(i > 1 and ((sum_w_0_k -
                                 self.samples.get_weight_from_index(i-1))
                                 >= self.total_weight / 2.0)):
             i -= 1
             sum_w_0_k -= self.samples.get_weight_from_index(i)
 
-        #with gil:
-        #    print ("get_median_raw.... i: " + str(i) + " ; sum_w_0_k: " + str(sum_w_0_k))
         return i
 
 
@@ -751,16 +802,10 @@ cdef class WeightedMedianCalculator:
         cdef int i = self.samples.size()
         cdef DOUBLE_t sum_w_0_k = self.total_weight
 
-        #with gil:
-        #    print ("get_median_raw.... self.samples.size(): " + str(i) + " ; self.total_weight: " + str(self.total_weight) + " ; "
-        #        + "self.samples.get_weight_from_index(i-1): " + str(self.samples.get_weight_from_index(i-1)))
-
         while(i > 1 and ((sum_w_0_k -
                                 self.samples.get_weight_from_index(i-1))
                                 >= self.total_weight / 2.0)):
             i -= 1
             sum_w_0_k -= self.samples.get_weight_from_index(i)
 
-        #with gil:
-        #    print ("get_median_raw.... i: " + str(i) + " ; sum_w_0_k: " + str(sum_w_0_k))
         return sum_w_0_k
