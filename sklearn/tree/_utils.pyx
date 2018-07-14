@@ -750,6 +750,9 @@ cdef class WeightedMedianCalculator:
         cdef DOUBLE_t raw_sum_w_0_k
         cdef int raw_k = 0
 
+        if self.samples.size() == 0:
+            return 0
+
         raw_median = self.verify_median()
         if (self.get_median() != raw_median):
             with gil:
