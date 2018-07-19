@@ -754,19 +754,24 @@ cdef class WeightedMedianCalculator:
             return 0
 
         raw_median = self.verify_median()
-        if (self.get_median() != raw_median):
+        if (fabs(self.get_median() - raw_median) >= 0.0000001):
             with gil:
-                raise ValueError("Medians not correct???", "raw median: " + str(raw_median), "k based median: " + str(self.get_median()))      
-        
+                raise ValueError("Medians not correct???", "raw median: " +
+                                 str(raw_median),
+                                 "k based median: " + str(self.get_median()))
+
         raw_k = self.verify_k()
         if (raw_k != self.k):
             with gil:
-                raise ValueError("K not correct???", "raw_k: " + str(raw_k), "self.k: " + str(self.k))
+                raise ValueError("K not correct???", "raw_k: " + str(raw_k),
+                                 "self.k: " + str(self.k))
 
         raw_sum_w_0_k = self.verify_sum_w_0_k()
-        if (raw_sum_w_0_k != self.sum_w_0_k):
+        if (fabs(raw_sum_w_0_k - self.sum_w_0_k) >= 0.0000001):
             with gil:
-                raise ValueError("sum_w_0_k not correct???", "raw_sum_w_0_k: " + str(raw_sum_w_0_k), "self.sum_w_0_k: " + str(self.sum_w_0_k))
+                raise ValueError("sum_w_0_k not correct???",
+                                 "raw_sum_w_0_k: " + str(raw_sum_w_0_k),
+                                 "self.sum_w_0_k: " + str(self.sum_w_0_k))
         
         return 0
 
