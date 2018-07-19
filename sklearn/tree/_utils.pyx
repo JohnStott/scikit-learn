@@ -14,6 +14,7 @@
 from libc.stdlib cimport free
 from libc.stdlib cimport malloc
 from libc.stdlib cimport realloc
+from libc.math cimport fabs
 from libc.math cimport log as ln
 
 import numpy as np
