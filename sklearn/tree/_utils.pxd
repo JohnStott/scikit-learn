@@ -161,9 +161,10 @@ cdef class WeightedMedianCalculator:
     cdef int update_median_parameters_post_push(
         self, DOUBLE_t data, DOUBLE_t weight, DOUBLE_t original_median,
         int push_index) nogil
-    cdef int remove(self, DOUBLE_t data, DOUBLE_t weight) nogil
-    cdef int pop(self, DOUBLE_t* data, DOUBLE_t* weight) nogil
+    cdef int remove(self, DOUBLE_t data, DOUBLE_t weight) nogil except -1
+    cdef int pop(self, DOUBLE_t* data, DOUBLE_t* weight) nogil except -1
     cdef int update_median_parameters_post_remove(
         self, DOUBLE_t data, DOUBLE_t weight, DOUBLE_t original_median,
         int removal_index) nogil
     cdef DOUBLE_t get_median(self) nogil
+

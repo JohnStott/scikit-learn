@@ -617,7 +617,7 @@ cdef class WeightedMedianCalculator:
         self.verify_state()
         #return 0
 
-    cdef int pop(self, DOUBLE_t* data, DOUBLE_t* weight) nogil:
+    cdef int pop(self, DOUBLE_t* data, DOUBLE_t* weight) nogil except -1:
         """Pop a value from the MedianHeap, starting from the
         left and moving to the right.
         """
