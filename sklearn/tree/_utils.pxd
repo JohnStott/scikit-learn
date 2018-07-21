@@ -168,3 +168,8 @@ cdef class WeightedMedianCalculator:
         int removal_index) nogil
     cdef DOUBLE_t get_median(self) nogil
 
+    # used for debugging / unit testing only:
+    cdef int verify_state(self) nogil except -1
+    cdef DOUBLE_t verify_median(self) nogil
+    cdef int verify_k(self) nogil
+    cdef DOUBLE_t verify_sum_w_0_k(self) nogil
