@@ -343,7 +343,6 @@ cdef class WeightedPQueue:
 
     cdef int push(self, DOUBLE_t data, DOUBLE_t weight) nogil except -1:
         """Push record on the array.
-
         Return -1 in case of failure to allocate memory (and raise MemoryError)
         or returns index of the item added.
         """
@@ -404,7 +403,7 @@ cdef class WeightedPQueue:
 
     cdef int pop(self, DOUBLE_t* data, DOUBLE_t* weight) nogil:
         """Remove the top (minimum) element from array.
-        Returns the index of the item popped if successful (will always be 
+        Returns the index of the item popped if successful (will always be
         zero), -1 if nothing to remove."""
         cdef SIZE_t array_ptr = self.array_ptr
         cdef WeightedPQueueRecord* array = self.array_
@@ -532,7 +531,7 @@ cdef class WeightedMedianCalculator:
         push_index = self.samples.push(data, weight)
         if push_index == -1:
             return -1
-        self.update_median_parameters_post_push(data, weight, original_median, 
+        self.update_median_parameters_post_push(data, weight, original_median,
                                                 push_index)
         self.verify_state()
         #return 0
@@ -556,7 +555,6 @@ cdef class WeightedMedianCalculator:
         self.total_weight += weight
 
         if data == original_median:
-
             if push_index < self.k:
                 self.sum_w_0_k += weight
                 self.k += 1
@@ -608,27 +606,29 @@ cdef class WeightedMedianCalculator:
         cdef int removal_index
         cdef DOUBLE_t original_median
 
-        if self.size() != 0:
-            original_median = self.get_median()
+        # no elements to remove
+        if self.size() == 0:
+            return -1
+
+        original_median = self.get_median()
 
         removal_index = self.samples.remove(data, weight)
         self.update_median_parameters_post_remove(data, weight, original_median,                                          removal_index)
         self.verify_state()
         #return 0
 
-    cdef int pop(self, DOUBLE_t* data, DOUBLE_t* weight) nogil except -1:
+    cdef int pop(self, DOUBLE_t* data, DOUBLE_t* weight) nogil:
         """Pop a value from the MedianHeap, starting from the
         left and moving to the right.
         """
         cdef int removal_index
         cdef double original_median
 
-        if self.size() != 0:
-            original_median = self.get_median()
-
         # no elements to pop
-        if self.samples.size() == 0:
+        if self.size() == 0:
             return -1
+
+        original_median = self.get_median()
 
         removal_index = self.samples.pop(data, weight)
         self.update_median_parameters_post_remove(data[0], weight[0],
@@ -664,13 +664,16 @@ cdef class WeightedMedianCalculator:
         if data == original_median:
             if removal_index < self.k:
                 self.k -= 1
-                self.sum_w_0_k -= weight            
-            
-            while(self.k < self.samples.size() and (self.sum_w_0_k < self.total_weight / 2.0)):
+                self.sum_w_0_k -= weight
+
+            while(self.k < self.samples.size() and
+                  (self.sum_w_0_k < self.total_weight / 2.0)):
                 self.k += 1
                 self.sum_w_0_k += self.samples.get_weight_from_index(self.k-1)
 
-            while(self.k > 1 and ((self.sum_w_0_k - self.samples.get_weight_from_index(self.k-1)) >= self.total_weight / 2.0)):
+            while(self.k > 1 and ((self.sum_w_0_k -
+                                   self.samples.get_weight_from_index(self.k-1))
+                                  >= self.total_weight / 2.0)):
                 self.k -= 1
                 self.sum_w_0_k -= self.samples.get_weight_from_index(self.k)
             
